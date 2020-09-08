@@ -14,8 +14,10 @@ rbtree *create_node(int key, int value)
 rbtree *rbtree_add(rbtree *t_root, int key, int value)
 {
     rbtree *tree = t_root;
+    rbtree *y = t_root->null;
     while (tree != t_root->null)
     {
+        y = tree;
         if (key < tree->key)
         {
             tree = tree->left;
@@ -31,26 +33,27 @@ rbtree *rbtree_add(rbtree *t_root, int key, int value)
     }
 
     rbtree *node = create_node(key, value);
+    node->parent = y;
+    tree = node;
     if (t_root->root == NULL)
     {
-        t_root->null = malloc(sizeof(rbtree));
-        t_root->null->color = BLACK;
         t_root->root = node;
-        t_root->parent = t_root->null;
+        tree->root = node;
+        tree->null = t_root->null;
     }
     else
     {
-        if (key < t_root->parent->key)
+        if (key < tree->parent->key)
         {
-            t_root->parent->left = node;
+            tree->parent->left = node;
         }
         else
         {
-            t_root->parent->right = node;
+            tree->parent->right = node;
         }
+        node->color = RED;
     }
-
-    node->color = RED;
+    node->null = t_root->null;
     node->left = t_root->null;
     node->right = t_root->null;
     rbtree_add_fixup(t_root, node);
@@ -183,7 +186,7 @@ rbtree *rbtree_lookup(rbtree *t_root, int key)
         }
         else
         {
-            if (t_root->key < key)
+            if (t_root->key > key)
             {
                 t_root = t_root->left;
             }
@@ -196,7 +199,7 @@ rbtree *rbtree_lookup(rbtree *t_root, int key)
     return t_root;
 }
 
-rbtree *rbtree_transplant(rbtree *t_root, rbtree *u, rbtree *v)
+void rbtree_transplant(rbtree *t_root, rbtree *u, rbtree *v)
 {
     if (u->parent == t_root->null)
     {
@@ -214,7 +217,6 @@ rbtree *rbtree_transplant(rbtree *t_root, rbtree *u, rbtree *v)
         }
     }
     v->parent = u->parent;
-    return v;
 }
 
 rbtree *rbtree_min(rbtree *t_root)
@@ -261,7 +263,7 @@ rbtree *rbtree_delete(rbtree *t_root, int key)
         {
             y = rbtree_min(node->right);
             y_original_color = y->color;
-            rbtree *x = y->right;
+            x = y->right;
             if (y->parent == node)
             {
                 x->parent = y;
@@ -282,7 +284,7 @@ rbtree *rbtree_delete(rbtree *t_root, int key)
     {
         rbtree_delete_fixup(t_root, x);
     }
-    free(node);
+    return node;
 }
 
 void rbtree_delete_fixup(rbtree *t_root, rbtree *node)
@@ -363,8 +365,71 @@ void rbtree_delete_fixup(rbtree *t_root, rbtree *node)
     node->color = BLACK;
 }
 
+void rbtree_free(rbtree *t_root)
+{
+    if (t_root->right != t_root->null)
+    {
+        rbtree_free(t_root->right);
+    }
+    else
+    {
+        if (t_root->left != t_root->null)
+        {
+            rbtree_free(t_root->left);
+        }
+        else
+        {
+            if (t_root->parent != t_root->null)
+            {
+                if (t_root->parent->left == t_root)
+                {
+                    t_root->parent->left = t_root->null;
+                }
+                else
+                {
+                    t_root->parent->right = t_root->null;
+                }
+                rbtree_free(t_root->parent);
+                free(t_root);
+            }
+            else
+            {
+                free(t_root);
+            }
+        }
+    }
+}
+
+void rbtree_print_dfs(rbtree *t_root)
+{
+    if (t_root == t_root->null)
+    {
+        return;
+    }
+    rbtree_print_dfs(t_root->left);
+    printf("%d\n", t_root->key);
+    rbtree_print_dfs(t_root->right);
+}
+
 int main()
 {
-    printf("zaebis`\n");
-    return 0;
+    rbtree *null;
+    null = malloc(sizeof(rbtree));
+    null->color = BLACK;
+    null->null = null;
+    rbtree *root = null;
+    root->null = null;
+    for (int i = 1; i <= 50000; i++)
+    {
+        if (root == null)
+        {
+            root = rbtree_add(root, i, 1);
+        }
+        else
+        {
+            rbtree_add(root, i, 1);
+        }
+    }
+    rbtree_print_dfs(root->root);
+    printf("%d\n", root->root->key);
 }
