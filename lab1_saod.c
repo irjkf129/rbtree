@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "lab1_saod.h"
+#include <sys/time.h>
 
 rbtree *create_node(int key, int value)
 {
@@ -13,7 +14,7 @@ rbtree *create_node(int key, int value)
 
 rbtree *rbtree_add(rbtree *t_root, int key, int value)
 {
-    rbtree *tree = t_root;
+    rbtree *tree = t_root->root;
     rbtree *y = t_root->null;
     while (tree != t_root->null)
     {
@@ -35,7 +36,7 @@ rbtree *rbtree_add(rbtree *t_root, int key, int value)
     rbtree *node = create_node(key, value);
     node->parent = y;
     tree = node;
-    if (t_root->root == NULL)
+    if (t_root->root == t_root->null)
     {
         t_root->root = node;
         tree->root = node;
@@ -400,36 +401,43 @@ void rbtree_free(rbtree *t_root)
     }
 }
 
-void rbtree_print_dfs(rbtree *t_root)
+void rbtree_print_dfs(rbtree *t_root, int level)
 {
-    if (t_root == t_root->null)
+    if (t_root == t_root->null || level < 0)
     {
         return;
     }
-    rbtree_print_dfs(t_root->left);
+    rbtree_print_dfs(t_root->left, level - 1);
     printf("%d\n", t_root->key);
-    rbtree_print_dfs(t_root->right);
+    rbtree_print_dfs(t_root->right, level - 1);
+}
+
+double wtime()
+{
+    struct timeval t;
+    gettimeofday(&t, NULL);
+    return (double)t.tv_sec + (double)t.tv_usec * 1E-6;
 }
 
 int main()
 {
+    int random = 1000;
     rbtree *null;
     null = malloc(sizeof(rbtree));
     null->color = BLACK;
     null->null = null;
-    rbtree *root = null;
-    root->null = null;
-    for (int i = 1; i <= 50000; i++)
+    rbtree *tree = null;
+    tree->null = null;
+    tree->root = null;
+    for (int i = 1; i <= random; i++)
     {
-        if (root == null)
-        {
-            root = rbtree_add(root, i, 1);
-        }
-        else
-        {
-            rbtree_add(root, i, 1);
-        }
+        rbtree_add(tree, i, 1);
     }
-    rbtree_print_dfs(root->root);
-    printf("%d\n", root->root->key);
+    //rbtree_print_dfs(tree->root, 4);
+    double t1 = wtime();
+    int r = rand() % random;
+    printf("%d\n", r);
+    rbtree_lookup(tree->root, r);
+    double t2 = wtime();
+    printf("%.15f\n", t2 - t1);
 }

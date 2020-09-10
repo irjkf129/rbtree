@@ -28,6 +28,6 @@ rbtree* rbtree_delete(rbtree* t_root, int key);//+
 rbtree* rbtree_min(rbtree* t_root);//+
 rbtree* rbtree_max(rbtree* t_root);//+
 void rbtree_free(rbtree* t_root);//+
-void rbtree_print_dfs(rbtree* t_root);
+void rbtree_print_dfs(rbtree* t_root, int level);
 
 #endif
